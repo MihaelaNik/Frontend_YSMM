@@ -1,0 +1,94 @@
+/* ===== OFFICES PAGE ===== */
+.offices-page {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 0;
+  background-color: #f0f3f1;
+}
+
+.offices-card {
+  width: 100%;
+  max-width: 600px;
+  background-color: #dff1e0;
+  padding: 35px;
+  border-radius: 10px;
+  border-top: 6px solid #2e7d32;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.offices-card h1 {
+  margin-top: 0;
+  margin-bottom: 25px;
+  color: #2e7d32;
+  text-align: center;
+}
+
+.search-box {
+  display: flex;
+  margin-bottom: 20px;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 5px 0 0 5px;
+  border: 1px solid #aac7ad;
+  font-size: 14px;
+}
+
+.search-box button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 0 5px 5px 0;
+  background-color: #79b67c;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.search-box button:hover {
+  background-color: #6aa86d;
+}
+
+.office-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.office-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid #aac7ad;
+}
+
+.office-list li:last-child {
+  border-bottom: none;
+}
+
+.error {
+  color: red;
+  margin-bottom: 10px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .offices-card {
+    margin: 0 15px;
+    padding: 25px;
+  }
+
+  .search-box {
+    flex-direction: column;
+  }
+
+  .search-box input,
+  .search-box button {
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+
+  .search-box button {
+    margin-bottom: 0;
+  }
+}
