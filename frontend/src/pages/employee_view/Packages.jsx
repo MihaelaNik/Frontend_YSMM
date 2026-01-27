@@ -3,190 +3,370 @@ import "../../styles/Packages.css";
 
 const API = "http://localhost:5000";
 
-const statusLabel = (s) => {
-  const v = (s || "").toLowerCase();
-  if (v === "pending") return "Чакаща";
-  if (v === "in_transit") return "В транзит";
-  if (v === "delivered") return "Доставена";
-  if (v === "return") return "Връщане";
-  return s || "-";
-};
+function getLocalUser() {
+  try {
+    const raw = localStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
-function Packages() {
-  const [rows, setRows] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+function getUserId(user) {
+  return user?.id ?? user?.userId ?? user?.user_id ?? null;
+}
 
-  // simple filters
-  const [q, setQ] = useState("");
-  const [status, setStatus] = useState("all");
+function getUserRole(user) {
+  return (user?.user_type || user?.role || "").toString().toLowerCase();
+}
 
-  const load = async () => {
+async function tryFetchJson(url, { method = "GET", body } = {}) {
+  const res = await fetch(url, {
+    method,
+    credentials: "include",
+    headers: body ? { "Content-Type": "application/json" } : undefined,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  const text = await res.text();
+
+  // If route doesn't exist, Express returns HTML "Cannot POST ..." (not JSON)
+  const looksLikeHtml = text.trim().startsWith("<!DOCTYPE html>") || text.includes("Cannot POST");
+
+  let data = {};
+  if (!looksLikeHtml) {
     try {
-      setLoading(true);
-      setError(null);
-
-      // employee can use this and will see all packages
-      const res = await fetch(`${API}/packages/get-listPackages`, {
-        credentials: "include",
-      });
-
-      if (!res.ok) throw new Error("Грешка при зареждане на пратките.");
-
-      const data = await res.json();
-      setRows(data.listPackages || []);
-    } catch (e) {
-      setError(e.message);
-      setRows([]);
-    } finally {
-      setLoading(false);
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { raw: text };
     }
-  };
+  } else {
+    data = { raw: text };
+  }
 
-  useEffect(() => {
-    load();
+  return { ok: res.ok, status: res.status, data, looksLikeHtml, url };
+}
+
+async function apiFetchFallback(paths, { method = "GET", body } = {}) {
+  let lastError = null;
+
+  for (const path of paths) {
+    const url = `${API}${path}`;
+    const r = await tryFetchJson(url, { method, body });
+
+    // If endpoint exists but returns error (401/500), we should surface it.
+    if (!r.looksLikeHtml) {
+      if (r.ok) return r.data;
+      throw new Error(r.data?.error || r.data?.message || r.data?.raw || `Request failed (${r.status})`);
+    }
+
+    // If it looks like "Cannot POST /xxx", try next path
+    lastError = new Error(`Endpoint not found: ${path}`);
+  }
+
+  throw lastError || new Error("No working endpoint found.");
+}
+
+export default function Packages() {
+  const user = useMemo(() => getLocalUser(), []);
+  const role = useMemo(() => getUserRole(user), [user]);
+  const myUserId = useMemo(() => getUserId(user), [user]);
+
+  const [activeTab, setActiveTab] = useState("all"); // all | mine | transit
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [dtStart, setDtStart] = useState("");
+  const [dtEnd, setDtEnd] = useState("");
+
+  const [rows, setRows] = useState([]);
+  const [statusBusyId, setStatusBusyId] = useState(null);
+
+  const isAllowed = user && (role === "employee" || role === "admin" || role === "courier");
+
+  const endpoints = useMemo(() => {
+    return {
+      listAll: [
+        "/packages/post-listPackages",
+        "/packages/list",
+        "/api/packages/post-listPackages",
+        "/api/packages/list",
+      ],
+      listMine: [
+        "/packages/post-listPackagesEmployees",
+        "/packages/listByEmployee",
+        "/api/packages/post-listPackagesEmployees",
+        "/api/packages/listByEmployee",
+      ],
+      listTransit: [
+        "/packages/post-listPackagesTransit",
+        "/packages/listTransit",
+        "/api/packages/post-listPackagesTransit",
+        "/api/packages/listTransit",
+      ],
+      status: [
+        "/packages/packageStatus",
+        "/api/packages/packageStatus",
+      ],
+    };
   }, []);
 
-  const filtered = useMemo(() => {
-    const text = q.trim().toLowerCase();
-    return rows.filter((p) => {
-      const matchesText =
-        !text ||
-        String(p.id).includes(text) ||
-        (p.senderName || "").toLowerCase().includes(text) ||
-        (p.receiverName || "").toLowerCase().includes(text) ||
-        (p.senderOffice || "").toLowerCase().includes(text) ||
-        (p.receiverOffice || "").toLowerCase().includes(text);
+  async function load() {
+    setLoading(true);
+    setError("");
 
-      const matchesStatus =
-        status === "all" ? true : (p.status || "").toLowerCase() === status;
-
-      return matchesText && matchesStatus;
-    });
-  }, [rows, q, status]);
-
-  const updateStatus = async (packageId, newStatus) => {
     try {
-      setLoading(true);
-      setError(null);
+      const body = {
+        page,
+        ...(dtStart ? { dtStart } : {}),
+        ...(dtEnd ? { dtEnd } : {}),
+      };
 
-      const res = await fetch(`${API}/packages/packageStatus`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ packageId, status: newStatus }),
-      });
+      let data;
 
-      const text = await res.text();
-      let body = {};
-      try {
-        body = text ? JSON.parse(text) : {};
-      } catch {
-        body = { raw: text };
+      if (activeTab === "transit") {
+        data = await apiFetchFallback(endpoints.listTransit, { method: "POST", body });
+      } else if (activeTab === "mine") {
+        if (!myUserId) throw new Error("Липсва user id в localStorage.");
+        data = await apiFetchFallback(endpoints.listMine, {
+          method: "POST",
+          body: { ...body, employeesId: myUserId },
+        });
+      } else {
+        data = await apiFetchFallback(endpoints.listAll, { method: "POST", body });
       }
 
-      if (!res.ok) throw new Error(body.error || body.raw || "Грешка при смяна на статус.");
-
-      // update UI
-      setRows((prev) =>
-        prev.map((p) => (p.id === packageId ? { ...p, status: newStatus } : p))
-      );
+      setRows(Array.isArray(data?.listPackages) ? data.listPackages : []);
+      setTotalPages(Number(data?.totalPages || 1));
     } catch (e) {
-      setError(e.message);
+      setRows([]);
+      setTotalPages(1);
+      setError(e.message || "Грешка при зареждане.");
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    if (!isAllowed) return;
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, page]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [dtStart, dtEnd, activeTab]);
+
+  useEffect(() => {
+    if (!isAllowed) return;
+    if (page !== 1) return;
+    load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dtStart, dtEnd]);
+
+  async function updateStatus(packageId, status) {
+    if (!packageId) return;
+    setStatusBusyId(packageId);
+    setError("");
+
+    try {
+      await apiFetchFallback(endpoints.status, {
+        method: "POST",
+        body: { packageId, status },
+      });
+
+      setRows((prev) => prev.map((r) => (r.id === packageId ? { ...r, status } : r)));
+    } catch (e) {
+      setError(e.message || "Неуспешна промяна на статус.");
+    } finally {
+      setStatusBusyId(null);
+    }
+  }
+
+  if (!user) {
+    return (
+      <div className="packages-page">
+        <div className="packages-card">
+          <h2>Пратки</h2>
+          <p className="packages-error">Моля, влезте в профила си.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAllowed) {
+    return (
+      <div className="packages-page">
+        <div className="packages-card">
+          <h2>Пратки</h2>
+          <p className="packages-error">Нямате достъп до тази страница.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="packages-page">
       <div className="packages-card">
         <div className="packages-header">
-          <h2>Всички пратки</h2>
-          <button className="refresh-btn" onClick={load} disabled={loading}>
+          <h2>Пратки</h2>
+
+          <div className="packages-tabs">
+            <button
+              className={`tab-btn ${activeTab === "all" ? "active" : ""}`}
+              onClick={() => {
+                setActiveTab("all");
+                setPage(1);
+              }}
+            >
+              Всички
+            </button>
+
+            <button
+              className={`tab-btn ${activeTab === "mine" ? "active" : ""}`}
+              onClick={() => {
+                setActiveTab("mine");
+                setPage(1);
+              }}
+              disabled={!myUserId}
+            >
+              Моите
+            </button>
+
+            <button
+              className={`tab-btn ${activeTab === "transit" ? "active" : ""}`}
+              onClick={() => {
+                setActiveTab("transit");
+                setPage(1);
+              }}
+            >
+              В транзит
+            </button>
+          </div>
+        </div>
+
+        <div className="packages-filters">
+          <div className="filter-item">
+            <label>От дата</label>
+            <input type="date" value={dtStart} onChange={(e) => setDtStart(e.target.value)} />
+          </div>
+
+          <div className="filter-item">
+            <label>До дата</label>
+            <input type="date" value={dtEnd} onChange={(e) => setDtEnd(e.target.value)} />
+          </div>
+
+          <button className="packages-refresh-btn" onClick={load} disabled={loading}>
             Обнови
           </button>
         </div>
 
-        <div className="packages-filters">
-          <input
-            className="filter-input"
-            placeholder="Търси по №, изпращач, получател, офис..."
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
+        {error && <p className="packages-error">{error}</p>}
+        {loading && <p className="packages-loading">Зареждане...</p>}
 
-          <select
-            className="filter-select"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="all">Всички статуси</option>
-            <option value="pending">Чакащи</option>
-            <option value="in_transit">В транзит</option>
-            <option value="delivered">Доставени</option>
-            <option value="return">Връщане</option>
-          </select>
-        </div>
+        <div className="packages-table-wrap">
+          <table className="packages-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Дата</th>
+                <th>Подател</th>
+                <th>Получател</th>
+                <th>Офис Подател</th>
+                <th>Офис Получател</th>
+                <th>Тегло</th>
+                <th>Статус</th>
+                <th>Промяна</th>
+              </tr>
+            </thead>
 
-        {loading && <p>Зареждане...</p>}
-        {error && <p className="error">{error}</p>}
-
-        {!loading && !error && filtered.length === 0 && <p>Няма пратки.</p>}
-
-        {filtered.length > 0 && (
-          <div className="packages-table-wrap">
-            <table className="packages-table">
-              <thead>
+            <tbody>
+              {rows.length === 0 && !loading ? (
                 <tr>
-                  <th>№</th>
-                  <th>Дата</th>
-                  <th>Изпращач</th>
-                  <th>Получател</th>
-                  <th>От офис</th>
-                  <th>До офис</th>
-                  <th>Кг</th>
-                  <th>Статус</th>
-                  <th>Промяна</th>
+                  <td colSpan={9} className="packages-empty">
+                    Няма намерени пратки.
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filtered.map((p) => (
+              ) : (
+                rows.map((p) => (
                   <tr key={p.id}>
                     <td>{p.id}</td>
-                    <td>{p.date_pack_start ? String(p.date_pack_start).slice(0, 10) : "-"}</td>
-                    <td>{p.senderName || "-"}</td>
-                    <td>{p.receiverName || "-"}</td>
+                    <td>{String(p.date_pack_start || "").slice(0, 10)}</td>
+
+                    <td className="cell-wrap">
+                      <div className="cell-title">{p.senderName || "-"}</div>
+                      <div className="cell-sub">{p.senderPhone ? `тел: ${p.senderPhone}` : ""}</div>
+                      <div className="cell-sub">
+                        {p.senderCity ? `${p.senderCity}` : ""}
+                        {p.senderAddress ? `, ${p.senderAddress}` : ""}
+                      </div>
+                    </td>
+
+                    <td className="cell-wrap">
+                      <div className="cell-title">{p.receiverName || "-"}</div>
+                      <div className="cell-sub">{p.receiverPhone ? `тел: ${p.receiverPhone}` : ""}</div>
+                      <div className="cell-sub">
+                        {p.receiverCity ? `${p.receiverCity}` : ""}
+                        {p.receiverAddress ? `, ${p.receiverAddress}` : ""}
+                      </div>
+                    </td>
+
                     <td>{p.senderOffice || "-"}</td>
                     <td>{p.receiverOffice || "-"}</td>
                     <td>{p.weight ?? "-"}</td>
+
                     <td>
-                      <span className={`status-badge status-${(p.status || "").toLowerCase()}`}>
-                        {statusLabel(p.status)}
+                      <span className={`status-pill status-${p.status || "pending"}`}>
+                        {p.status || "pending"}
                       </span>
                     </td>
+
                     <td>
                       <select
                         className="status-select"
                         value={p.status || "pending"}
+                        disabled={statusBusyId === p.id}
                         onChange={(e) => updateStatus(p.id, e.target.value)}
-                        disabled={loading}
                       >
-                        <option value="pending">Чакаща</option>
-                        <option value="in_transit">В транзит</option>
-                        <option value="delivered">Доставена</option>
-                        <option value="return">Връщане</option>
+                        <option value="pending">pending</option>
+                        <option value="in_transit">in_transit</option>
+                        <option value="delivered">delivered</option>
+                        <option value="return">return</option>
                       </select>
+                      {statusBusyId === p.id && <span className="status-saving">…</span>}
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="packages-pagination">
+          <button
+            className="page-btn"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={loading || page <= 1}
+          >
+            ◀ Предишна
+          </button>
+
+          <div className="page-info">
+            Страница <b>{page}</b> от <b>{totalPages}</b>
           </div>
-        )}
+
+          <button
+            className="page-btn"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={loading || page >= totalPages}
+          >
+            Следваща ▶
+          </button>
+        </div>
       </div>
     </div>
   );
 }
-
-export default Packages;
