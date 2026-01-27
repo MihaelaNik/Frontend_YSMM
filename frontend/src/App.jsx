@@ -15,6 +15,10 @@ import MyPackages from "./pages/client_view/MyPackages";
 import AdminOffices from "./pages/admin_view/AdminOffices";
 import AdminEmployees from "./pages/admin_view/AdminEmployees";
 import AdminRevenue from "./pages/admin_view/AdminRevenue";
+import Clients from "./pages/employee_view/Clients"; 
+import Employees from "./pages/employee_view/Employees";
+import Packages from "./pages/employee_view/Packages";
+import RegisterPackage from "./pages/employee_view/RegisterPackage";
 
 
 function Layout() {
@@ -50,7 +54,7 @@ function Layout() {
         <Route path="/register" element={<Register />} />
         <Route path="/offices" element={<Offices />} />
 
-        {/* after login */}
+        {/* client */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/my-profile" element={<MyProfile />} />
         <Route path="/my-packages" element={<MyPackages />} />
@@ -59,6 +63,12 @@ function Layout() {
         <Route path="/admin/offices" element={<AdminOffices />} />
         <Route path="/admin/employees" element={<AdminEmployees />} />
         <Route path="/admin/revenue" element={<AdminRevenue />} />
+
+        {/* employee */}
+        <Route path="/clients" element={<Clients />} />
+        <Route path="/employees" element={<Employees />} />
+        <Route path="/packages" element={<Packages />} />
+        <Route path="/register-package" element={<RegisterPackage />} />
 
       </Routes>
     </>

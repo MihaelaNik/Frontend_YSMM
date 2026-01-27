@@ -124,6 +124,74 @@ const dbPromise = require("./db");
     await db.query("SET FOREIGN_KEY_CHECKS = 1");
     console.log(" Offices table created and seeded.");
 
+    const bcrypt = require("bcryptjs");
+
+    console.log("Resetting and seeding employees...");
+    await db.query("SET FOREIGN_KEY_CHECKS = 0");
+    await db.query("DROP TABLE IF EXISTS employee");
+    await db.query(`
+  CREATE TABLE IF NOT EXISTS employee (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) DEFAULT NULL,
+    role_id INT NOT NULL,
+    description VARCHAR(255) DEFAULT NULL,
+    active TINYINT DEFAULT 1
+  )
+`);
+
+// 2) Remove employee users from users table (so we don’t get duplicates)
+await db.query(`DELETE FROM users WHERE user_type = 'employee'`);
+await db.query("SET FOREIGN_KEY_CHECKS = 1");
+
+// 3) Insert 5 employee users
+const passHash = await bcrypt.hash("employee123", 10);
+
+const [userInsert] = await db.query(
+  `
+  INSERT INTO users (username, first_name, last_name, email, phone, password, user_type)
+  VALUES
+  (?, ?, ?, ?, ?, ?, 'employee'),
+  (?, ?, ?, ?, ?, ?, 'employee'),
+  (?, ?, ?, ?, ?, ?, 'employee'),
+  (?, ?, ?, ?, ?, ?, 'employee')
+  ,(?, ?, ?, ?, ?, ?, 'employee')
+  `,
+  [
+    "ivan.petrov", "Иван", "Петров", "ivan.petrov@logistics.bg", "0888000001", passHash,
+    "maria.ivanova", "Мария", "Иванова", "maria.ivanova@logistics.bg", "0888000002", passHash,
+    "georgi.dimitrov", "Георги", "Димитров", "georgi.dimitrov@logistics.bg", "0888000003", passHash,
+    "petya.stoyanova", "Петя", "Стоянова", "petya.stoyanova@logistics.bg", "0888000004", passHash,
+    "nikolay.kolev", "Николай", "Колев", "nikolay.kolev@logistics.bg", "0888000005", passHash,
+  ]
+);
+
+const firstId = userInsert.insertId; // first inserted user's id
+
+// 4) Insert matching employee profiles using sequential IDs
+await db.query(
+  `
+  INSERT INTO employee (user_id, name, email, role_id, description, active)
+  VALUES
+  (?, ?, ?, ?, ?, 1),
+  (?, ?, ?, ?, ?, 1),
+  (?, ?, ?, ?, ?, 1),
+  (?, ?, ?, ?, ?, 1),
+  (?, ?, ?, ?, ?, 1)
+  `,
+  [
+    firstId + 0, "Иван Петров", "ivan.petrov@logistics.bg", 1, "Office Manager",
+    firstId + 1, "Мария Иванова", "maria.ivanova@logistics.bg", 2, "Logistics Operator",
+    firstId + 2, "Георги Димитров", "georgi.dimitrov@logistics.bg", 3, "Courier Supervisor",
+    firstId + 3, "Петя Стоянова", "petya.stoyanova@logistics.bg", 2, "Customer Support",
+    firstId + 4, "Николай Колев", "nikolay.kolev@logistics.bg", 1, "Regional Manager",
+  ]
+);
+
+console.log("5 employees seeded. Password for all: employee123");
+
+
     // 3️⃣ Индекси
     console.log("Creating indexes (if missing)...");
 
