@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import "../styles/MyProfile.css";
+import "../../styles/MyProfile.css";
 
 function MyProfile() {
   const user = JSON.parse(localStorage.getItem("user"));

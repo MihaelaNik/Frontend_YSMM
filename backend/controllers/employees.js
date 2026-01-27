@@ -15,6 +15,7 @@ exports.getEmployees = async (req, res) => {
 };
 
 exports.addEmployees = async (req, res) => {
+    
     try{
         const dbConnection = await db;
         const {name, email, role_id, password} = req.body;

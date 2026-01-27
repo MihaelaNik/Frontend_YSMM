@@ -11,7 +11,7 @@ function DashboardNavbar() {
 
   if (!user) return null;
 
-  // РОЛЯТА ИДВА ОТ user_type (или fallback ако backend върне role)
+  // ролята
   const role = (user.user_type || user.role || "").toString().toLowerCase();
 
   const logout = () => {
@@ -27,6 +27,7 @@ function DashboardNavbar() {
       </div>
 
       <div className={`nav-links ${menuOpen ? "open" : ""}`}>
+        {/* ОБЩО */}
         <button
           onClick={() => {
             navigate("/dashboard");
@@ -36,71 +37,55 @@ function DashboardNavbar() {
           Начало
         </button>
 
-        {/* ===== КЛИЕНТ ===== */}
+        {/* ===== CLIENT ===== */}
         {role === "client" && (
-       <>
-    <button onClick={() => { navigate("/send-package"); setMenuOpen(false); }}>
-      Нова пратка
-    </button>
+          <>
+            <button onClick={() => { navigate("/my-packages"); setMenuOpen(false); }}>
+              Моите пратки
+            </button>
 
-    <button onClick={() => { navigate("/my-packages"); setMenuOpen(false); }}>
-      Моите пратки
-    </button>
+            <button onClick={() => { navigate("/my-profile"); setMenuOpen(false); }}>
+              Моят профил
+            </button>
 
-    <button onClick={() => { navigate("/my-profile"); setMenuOpen(false); }}>
-      Моят профил
-    </button>
-  </>
-)}
+            <button onClick={() => { navigate("/track"); setMenuOpen(false); }}>
+              Проследяване
+            </button>
+          </>
+        )}
 
-        
-
-        {/* ===== СЛУЖИТЕЛ ===== */}
+        {/* ===== EMPLOYEE ===== */}
         {role === "employee" && (
           <>
-            <button
-              onClick={() => {
-                navigate("/packages");
-                setMenuOpen(false);
-              }}
-            >
-              Всички пратки
+            <button onClick={() => { navigate("/packages"); setMenuOpen(false); }}>
+             Пратки
             </button>
 
-            <button
-              onClick={() => {
-                navigate("/register-package");
-                setMenuOpen(false);
-              }}
-            >
-              Регистрация на пратка
+            <button onClick={() => { navigate("/register-package"); setMenuOpen(false); }}>
+              Регистрация на пратки
             </button>
 
-            <button
-              onClick={() => {
-                navigate("/clients");
-                setMenuOpen(false);
-              }}
-            >
+            <button onClick={() => { navigate("/clients"); setMenuOpen(false); }}>
               Клиенти
             </button>
+          </>
+            
+        )}
 
-            <button
-              onClick={() => {
-                navigate("/employees");
-                setMenuOpen(false);
-              }}
-            >
+        {/* ===== ADMIN ===== */}
+        {role === "admin" && (
+          <>
+            <button onClick={() => { navigate("/admin/offices"); setMenuOpen(false); }}>
+              Офиси
+            </button>
+
+            <button onClick={() => { navigate("/admin/employees"); setMenuOpen(false); }}>
               Служители
             </button>
 
-            <button
-              onClick={() => {
-                navigate("/reports");
-                setMenuOpen(false);
-              }}
-            >
-              Справки
+
+            <button onClick={() => { navigate("/admin/revenue"); setMenuOpen(false); }}>
+              Приходи
             </button>
           </>
         )}
@@ -118,6 +103,4 @@ function DashboardNavbar() {
 }
 
 export default DashboardNavbar;
-
-
 

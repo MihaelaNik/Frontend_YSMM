@@ -1,4 +1,3 @@
-/* ===== OFFICES PAGE ===== */
 .offices-page {
   min-height: calc(100vh - 80px);
   display: flex;
@@ -69,6 +68,22 @@
 .error {
   color: red;
   margin-bottom: 10px;
+}
+
+.show-all-btn {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  background-color: #2e7d32;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.show-all-btn:hover {
+  background-color: #256628;
 }
 
 /* RESPONSIVE */

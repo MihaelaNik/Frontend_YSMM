@@ -72,7 +72,7 @@ exports.addPackages = async (req, res) => {
     res.status(500).json({ error: "Database error, can't add Package." });
   }
 };
-
+    
 exports.listPackages = async (req, res) => {
   const dbConnection = await db;
   const userId = req.session.userId;
@@ -349,181 +349,116 @@ exports.listPackagesTransit = async (req, res) => {
 };
 
 exports.listSentPackages = async (req, res) => {
-  const dbConnection = await db;
-  const userId = req.session.userId;
-  const userType = req.session.user_type;
-  const username = req.session.username;
-  let page = 1;
-  let rowNumber = 0;
-  let dtStart = new Date();
-  let dtEnd = new Date();
-  let strWhere = " 1=0 ";
-  let clientId = 0;
+  try {
+    const dbConnection = await db;
 
-  const [dataClients] = await dbConnection.query(
-    "SELECT * FROM clients ORDER BY name"
-  );
-  if (req.body.clientId) {
-    clientId = req.body.clientId;
-    strWhere = " packages.sender_id= " + clientId + " ";
-  }
-  if (req.body.page) {
-    page = req.body.page;
-    rowNumber = page * 20 - 20;
-  }
-  if (req.body.dtStart) {
-    const date = new Date(req.body.dtStart);
-    if (!isNaN(date.getTime())) {
-      dtStart = date;
-      strWhere = strWhere + " AND packages.date_pack_start>= " + dtStart;
-    } else {
-      return res.status(400).json({
-        error: "Incorrect From Date.",
-      });
+    const clientId = req.body.clientId;
+    if (!clientId) {
+      return res.status(400).json({ error: "Missing clientId" });
     }
-  }
-  if (req.body.dtEnd) {
-    const date = new Date(req.body.dtEnd);
-    if (!isNaN(date.getTime())) {
-      dtEnd = date;
-      strWhere = strWhere + " AND packages.date_pack_start<= " + dtEnd;
-    } else {
-      return res.status(400).json({
-        error: "Incorrect To Date",
-      });
+
+    let page = 1;
+    let rowNumber = 0;
+    let strWhere = " packages.sender_id = ? ";
+
+    if (req.body.page) {
+      page = Number(req.body.page);
+      rowNumber = page * 20 - 20;
     }
+
+    const queryCount =
+      "SELECT COUNT(*) AS total FROM packages WHERE " + strWhere;
+
+    const [countRow] = await dbConnection.query(queryCount, [clientId]);
+    const totalCount = countRow[0].total;
+    const totalPages = Math.ceil(totalCount / 20);
+
+    const query =
+      "SELECT packages.id, packages.date_pack_start, " +
+      "packages.sender_id, c_sender.name AS senderName, " +
+      "packages.receiver_id, c_receiver.name AS receiverName, " +
+      "packages.sender_office_id, o_sender.office_name AS senderOffice, " +
+      "packages.receiver_office_id, o_receiver.office_name AS receiverOffice, " +
+      "packages.description, packages.weight, packages.status " +
+      "FROM packages " +
+      "LEFT JOIN clients AS c_sender ON packages.sender_id = c_sender.id " +
+      "LEFT JOIN clients AS c_receiver ON packages.receiver_id = c_receiver.id " +
+      "LEFT JOIN offices AS o_sender ON packages.sender_office_id = o_sender.id " +
+      "LEFT JOIN offices AS o_receiver ON packages.receiver_office_id = o_receiver.id " +
+      "WHERE " + strWhere +
+      "ORDER BY packages.date_pack_start DESC LIMIT 20 OFFSET ?";
+
+    const [listPackages] = await dbConnection.query(query, [
+      clientId,
+      rowNumber,
+    ]);
+
+    res.json({
+      page,
+      totalPages,
+      listPackages,
+    });
+  } catch (err) {
+    console.error("❌ listSentPackages error:", err);
+    res.status(500).json({ error: "Database error (listSentPackages)" });
   }
-
-  let queryCout =
-    "SELECT  COUNT(*) AS total " +
-    "FROM packages WHERE " +
-    strWhere +
-    "ORDER BY packages.date_pack_start DESC  ";
-  const [countRow] = await dbConnection.query(queryCout);
-  const totalCount = countRow[0].total;
-  const totalPages = Math.ceil(totalCount / 20);
-
-  let queryTMP =
-    "SELECT packages.id, packages.date_pack_start, " +
-    "packages.sender_id, c_sender.username AS senderName, " +
-    "c_sender.phone AS senderPhone, c_sender.country AS senderCountry, " +
-    "c_sender.city AS senderCity, c_sender.address AS senderAddress, " +
-    "packages.receiver_id, c_receiver.username AS receiverName, " +
-    "c_receiver.phone AS receiverPhone, c_receiver.country AS receiverCountry, " +
-    "c_receiver.city AS receiverCity, c_receiver.address AS receiverAddress, " +
-    "packages.sender_office_id, o_sender.office_name AS senderOffice," +
-    "packages.receiver_office_id, o_receiver.office_name AS receiverOffice, " +
-    "packages.description, packages.weight, " +
-    "packages.homeSender, packages.homeReceiver, packages.status " +
-    "FROM packages LEFT JOIN clients AS c_sender ON packages.sender_id = c_sender.id " +
-    "LEFT JOIN clients AS c_receiver ON packages.receiver_id = c_receiver.id " +
-    "LEFT JOIN offices AS o_sender ON packages.sender_office_id = o_sender.id " +
-    "LEFT JOIN offices AS o_receiver ON packages.receiver_office_id = o_receiver.id " +
-    "WHERE " +
-    strWhere +
-    "ORDER BY date_pack_start DESC LIMIT 20 OFFSET ? ";
-
-  const [listPackages] = await dbConnection.query(queryTMP, [rowNumber]);
-
-  res.json({
-    dataClients: dataClients,
-    clientId: clientId,
-    userId: userId,
-    dtStart: dtStart,
-    dtEnd: dtEnd,
-    page: page,
-    totalPages: totalPages,
-    listPackages: listPackages,
-  });
 };
 
+
 exports.listReceiverPackages = async (req, res) => {
-  const dbConnection = await db;
-  const userId = req.session.userId;
-  const userType = req.session.user_type;
-  const username = req.session.username;
-  let page = 1;
-  let rowNumber = 0;
-  let dtStart = new Date();
-  let dtEnd = new Date();
-  let strWhere = " 1=0 ";
-  let clientId = 0;
+  try {
+    const dbConnection = await db;
 
-  const [dataClients] = await dbConnection.query(
-    "SELECT * FROM clients ORDER BY name"
-  );
-  if (req.body.clientId) {
-    clientId = req.body.clientId;
-    strWhere = " packages.receiver_id= " + clientId + " ";
-  }
-  if (req.body.page) {
-    page = req.body.page;
-    rowNumber = page * 20 - 20;
-  }
-  if (req.body.dtStart) {
-    const date = new Date(req.body.dtStart);
-    if (!isNaN(date.getTime())) {
-      dtStart = date;
-      strWhere = strWhere + " AND packages.date_pack_start>= " + dtStart;
-    } else {
-      return res.status(400).json({
-        error: "Incorrect From Date.",
-      });
+    const clientId = req.body.clientId;
+    if (!clientId) {
+      return res.status(400).json({ error: "Missing clientId" });
     }
-  }
-  if (req.body.dtEnd) {
-    const date = new Date(req.body.dtEnd);
-    if (!isNaN(date.getTime())) {
-      dtEnd = date;
-      strWhere = strWhere + " AND packages.date_pack_start<= " + dtEnd;
-    } else {
-      return res.status(400).json({
-        error: "Incorrect To Date",
-      });
+
+    let page = 1;
+    let rowNumber = 0;
+    let strWhere = " packages.receiver_id = ? ";
+
+    if (req.body.page) {
+      page = Number(req.body.page);
+      rowNumber = page * 20 - 20;
     }
+
+    const queryCount =
+      "SELECT COUNT(*) AS total FROM packages WHERE " + strWhere;
+
+    const [countRow] = await dbConnection.query(queryCount, [clientId]);
+    const totalCount = countRow[0].total;
+    const totalPages = Math.ceil(totalCount / 20);
+
+    const query =
+      "SELECT packages.id, packages.date_pack_start, " +
+      "packages.sender_id, c_sender.name AS senderName, " +
+      "packages.receiver_id, c_receiver.name AS receiverName, " +
+      "packages.sender_office_id, o_sender.office_name AS senderOffice, " +
+      "packages.receiver_office_id, o_receiver.office_name AS receiverOffice, " +
+      "packages.description, packages.weight, packages.status " +
+      "FROM packages " +
+      "LEFT JOIN clients AS c_sender ON packages.sender_id = c_sender.id " +
+      "LEFT JOIN clients AS c_receiver ON packages.receiver_id = c_receiver.id " +
+      "LEFT JOIN offices AS o_sender ON packages.sender_office_id = o_sender.id " +
+      "LEFT JOIN offices AS o_receiver ON packages.receiver_office_id = o_receiver.id " +
+      "WHERE " + strWhere +
+      "ORDER BY packages.date_pack_start DESC LIMIT 20 OFFSET ?";
+
+    const [listPackages] = await dbConnection.query(query, [
+      clientId,
+      rowNumber,
+    ]);
+
+    res.json({
+      page,
+      totalPages,
+      listPackages,
+    });
+  } catch (err) {
+    console.error("❌ listReceiverPackages error:", err);
+    res.status(500).json({ error: "Database error (listReceiverPackages)" });
   }
-
-  let queryCout =
-    "SELECT  COUNT(*) AS total " +
-    "FROM packages WHERE " +
-    strWhere +
-    "ORDER BY packages.date_pack_start DESC  ";
-  const [countRow] = await dbConnection.query(queryCout);
-  const totalCount = countRow[0].total;
-  const totalPages = Math.ceil(totalCount / 20);
-
-  let queryTMP =
-    "SELECT packages.id, packages.date_pack_start, " +
-    "packages.sender_id, c_sender.username AS senderName, " +
-    "c_sender.phone AS senderPhone, c_sender.country AS senderCountry, " +
-    "c_sender.city AS senderCity, c_sender.address AS senderAddress, " +
-    "packages.receiver_id, c_receiver.username AS receiverName, " +
-    "c_receiver.phone AS receiverPhone, c_receiver.country AS receiverCountry, " +
-    "c_receiver.city AS receiverCity, c_receiver.address AS receiverAddress, " +
-    "packages.sender_office_id, o_sender.office_name AS senderOffice," +
-    "packages.receiver_office_id, o_receiver.office_name AS receiverOffice, " +
-    "packages.description, packages.weight, " +
-    "packages.homeSender, packages.homeReceiver, packages.status " +
-    "FROM packages LEFT JOIN clients AS c_sender ON packages.sender_id = c_sender.id " +
-    "LEFT JOIN clients AS c_receiver ON packages.receiver_id = c_receiver.id " +
-    "LEFT JOIN offices AS o_sender ON packages.sender_office_id = o_sender.id " +
-    "LEFT JOIN offices AS o_receiver ON packages.receiver_office_id = o_receiver.id " +
-    "WHERE " +
-    strWhere +
-    "ORDER BY date_pack_start DESC LIMIT 20 OFFSET ? ";
-
-  const [listPackages] = await dbConnection.query(queryTMP, [rowNumber]);
-
-  res.json({
-    dataClients: dataClients,
-    clientId: clientId,
-    userId: userId,
-    dtStart: dtStart,
-    dtEnd: dtEnd,
-    page: page,
-    totalPages: totalPages,
-    listPackages: listPackages,
-  });
 };
 
 exports.totalMoney = async (req, res) => {

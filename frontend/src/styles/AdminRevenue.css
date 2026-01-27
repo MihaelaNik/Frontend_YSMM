@@ -1,0 +1,114 @@
+.admin-page {
+  padding: 32px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.admin-page h1 {
+  margin-bottom: 18px;
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+.revenue-card {
+  background: #e8f5e9;
+  border-left: 6px solid #2e7d32;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.06);
+}
+
+.revenue-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 220px;
+  gap: 12px;
+  align-items: end;
+}
+
+.revenue-card label {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  color: #2e3d33;
+  margin-bottom: 6px;
+}
+
+.revenue-card input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #aac7ad;
+  background: #fff;
+  font-size: 14px;
+}
+
+.revenue-card input:focus {
+  outline: none;
+  border-color: #2e7d32;
+}
+
+.revenue-actions button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  background: #2e7d32;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.revenue-actions button:hover {
+  background: #256528;
+}
+
+.revenue-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.msg {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.msg.error {
+  background: #ffe9e9;
+  color: #b10000;
+  border: 1px solid #ffc9c9;
+}
+
+.result-box {
+  margin-top: 14px;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid #d6ead8;
+}
+
+.result-title {
+  color: #2e7d32;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.result-value {
+  font-size: 28px;
+  font-weight: 900;
+  color: #1b5e20;
+}
+
+.result-sub {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #2e3d33;
+  opacity: 0.85;
+}
+
+@media (max-width: 820px) {
+  .revenue-grid {
+    grid-template-columns: 1fr;
+  }
+}

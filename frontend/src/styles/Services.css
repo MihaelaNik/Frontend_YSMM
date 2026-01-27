@@ -1,0 +1,217 @@
+/* ===== SERVICES PAGE ===== */
+.services-page {
+  background-color: #f0f3f1;
+  min-height: calc(100vh - 80px);
+}
+
+/* HERO */
+.services-hero {
+  background: linear-gradient(135deg, #2e7d32, #79b67c);
+  color: white;
+  padding: 70px 20px;
+  text-align: center;
+}
+
+.services-hero-inner {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.services-logo {
+  width: 90px;
+  height: auto;
+  margin-bottom: 16px;
+  background: white;
+  padding: 10px;
+  border-radius: 16px;
+}
+
+.services-hero h1 {
+  margin: 0;
+  font-size: 38px;
+}
+
+.services-hero p {
+  margin-top: 12px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+/* CTA */
+.services-cta {
+  margin-top: 18px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.services-btn {
+  padding: 12px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #ffffff;
+  color: #2e7d32;
+  font-weight: 800;
+}
+
+.services-btn:hover {
+  opacity: 0.92;
+}
+
+/* ✅ FIXED SECONDARY BUTTON (VISIBLE ON LIGHT BACKGROUNDS TOO) */
+.services-btn.secondary {
+  background: #ffffff;
+  color: #2e7d32;
+  border: 2px solid #2e7d32;
+}
+
+.services-btn.secondary:hover {
+  background: #2e7d32;
+  color: #ffffff;
+}
+
+.services-btn.small {
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+/* SECTION */
+.services-section {
+  max-width: 1100px;
+  margin: 50px auto;
+  padding: 0 20px;
+}
+
+.services-section h2 {
+  color: #2e7d32;
+  margin-bottom: 14px;
+  font-size: 28px;
+}
+
+.services-note {
+  color: #2e3d33;
+  line-height: 1.7;
+  max-width: 900px;
+}
+
+/* LIGHT */
+.services-section.light {
+  background-color: #f7fbf7;
+  padding: 40px 20px;
+  border-top: 1px solid #dfe9e0;
+  border-bottom: 1px solid #dfe9e0;
+}
+
+/* GRID */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.service-card {
+  background-color: #dff1e0;
+  border-radius: 14px;
+  padding: 22px;
+  border-top: 6px solid #2e7d32;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+.service-card h3 {
+  margin: 0 0 8px;
+  color: #2e7d32;
+}
+
+.service-card p {
+  margin: 0;
+  color: #2e3d33;
+  line-height: 1.6;
+}
+
+.service-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 12px;
+  border: 1px solid #aac7ad;
+  background: #f7fbf7;
+  color: #2e3d33;
+}
+
+.badge.green {
+  background: #e8f5e9;
+  border-color: #c8e6c9;
+  color: #2e7d32;
+}
+
+/* PRICING */
+.pricing {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.pricing-card {
+  background: #ffffff;
+  border: 1px solid #aac7ad;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+}
+
+.pricing-title {
+  color: #2e7d32;
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.pricing-text {
+  color: #2e3d33;
+  margin-top: 6px;
+}
+
+.pricing-line {
+  margin-top: 10px;
+  color: #2e3d33;
+}
+
+.services-cta-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+/* FOOTER */
+.services-footer {
+  text-align: center;
+  padding: 25px;
+  font-size: 14px;
+  color: #2e7d32;
+  background-color: #f7fbf7;
+}
+
+/* RESPONSIVE */
+@media (max-width: 980px) {
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+  .pricing {
+    grid-template-columns: 1fr;
+  }
+  .services-hero h1 {
+    font-size: 32px;
+  }
+}

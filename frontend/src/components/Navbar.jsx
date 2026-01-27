@@ -15,10 +15,10 @@ function Navbar() {
 
       <div className={`nav-links ${menuOpen ? "open" : ""}`}>
         <button onClick={() => { navigate("/"); setMenuOpen(false); }}>Начало</button>
-        <button onClick={() => { navigate("#about"); setMenuOpen(false); }}>За компанията</button>
-        <button onClick={() => { navigate("#services"); setMenuOpen(false); }}>Услуги</button>
+        <button onClick={() => { navigate("/about"); setMenuOpen(false); }}>За компанията</button>
+        <button onClick={() => { navigate("/services"); setMenuOpen(false); }}>Услуги</button>
         <button onClick={() => { navigate("/offices"); setMenuOpen(false); }}>Нашите офиси</button>
-        <button onClick={() => { navigate("#contact"); setMenuOpen(false); }}>Контакти</button>
+        <button onClick={() => { navigate("/contacts"); setMenuOpen(false); }}>Контакти</button>
 
         <button
           className="login-btn"
