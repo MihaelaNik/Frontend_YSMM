@@ -1,0 +1,125 @@
+/* ===== CONTACTS PAGE ===== */
+.contacts-page {
+  background-color: #f0f3f1;
+  min-height: calc(100vh - 80px);
+}
+
+/* HERO */
+.contacts-hero {
+  background: linear-gradient(135deg, #2e7d32, #79b67c);
+  color: white;
+  padding: 70px 20px;
+  text-align: center;
+}
+
+.contacts-hero-inner {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.contacts-logo {
+  width: 90px;
+  background: white;
+  padding: 10px;
+  border-radius: 16px;
+  margin-bottom: 16px;
+}
+
+.contacts-hero h1 {
+  margin: 0;
+  font-size: 38px;
+}
+
+.contacts-hero p {
+  margin-top: 12px;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+/* SECTION */
+.contacts-section {
+  max-width: 1100px;
+  margin: 50px auto;
+  padding: 0 20px;
+}
+
+/* SINGLE GRID (only info) */
+.contacts-grid-single {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+/* INFO */
+.contacts-info h2 {
+  color: #2e7d32;
+  margin-bottom: 18px;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  background: #ffffff;
+  padding: 14px;
+  border-radius: 10px;
+  border-left: 5px solid #2e7d32;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+}
+
+.info-item span {
+  font-size: 22px;
+}
+
+.info-item p {
+  margin: 2px 0 0;
+  color: #2e3d33;
+}
+
+/* EXTRA CARDS */
+.contacts-extra {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.extra-card {
+  background-color: #dff1e0;
+  padding: 18px;
+  border-radius: 12px;
+  border-top: 5px solid #2e7d32;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+.extra-card .k {
+  font-weight: 900;
+  color: #2e7d32;
+  margin-bottom: 8px;
+}
+
+.extra-card .v {
+  color: #2e3d33;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+/* FOOTER */
+.contacts-footer {
+  text-align: center;
+  padding: 25px;
+  font-size: 14px;
+  color: #2e7d32;
+  background-color: #f7fbf7;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .contacts-extra {
+    grid-template-columns: 1fr;
+  }
+
+  .contacts-hero h1 {
+    font-size: 32px;
+  }
+}

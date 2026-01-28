@@ -1,0 +1,33 @@
+# ### TEST GET / WEBSITE
+# GET http://localhost:5000
+
+# ### TEST GET / API DATA
+# GET http://localhost:5000/api/data
+
+##TEST REGISTER USER 
+# POST http://localhost:5000/auth/register
+# Content-Type: application/json
+
+# {
+#   "name": "Test User",
+#   "email": "test@mail.com",
+#   "password": "1234",
+#   "passwordConfirm": "1234"
+# }
+
+##TEST LOGIN USER
+POST http://localhost:5000/auth/login
+Content-Type: application/json
+
+{
+ "email": "test@mail.com",
+  "password": "1234"
+}
+
+# curl -X POST http://localhost:5000/employees/addEmployee \
+# -H "Content-Type: application/json" \
+# -d '{
+#   "name": "Mladena Kalcheva",
+#   "email": "test@mail.com",
+#   "role_id": 1
+# }'

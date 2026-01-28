@@ -1,0 +1,96 @@
+/* ===== DASHBOARD PAGE ===== */
+.dashboard-page {
+  min-height: calc(100vh - 80px);
+  background-color: #f0f3f1;
+  padding: 40px 20px;
+}
+
+/* MAIN CONTAINER */
+.dashboard-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* TITLE */
+.dashboard-title {
+  margin-top: 0;
+  color: #2e7d32;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+/* DESCRIPTION */
+.dashboard-text {
+  margin-top: 12px;
+  color: #2e3d33;
+  max-width: 850px;
+  line-height: 1.7;
+  font-size: 16px;
+}
+
+/* INFO GRID */
+.dashboard-info-grid {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* INFO CARD */
+.info-card {
+  background-color: #dff1e0;
+  border-radius: 14px;
+  padding: 24px;
+  border-top: 5px solid #2e7d32;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.15);
+}
+
+/* ICON */
+.info-card .icon {
+  font-size: 34px;
+  margin-bottom: 12px;
+}
+
+/* CARD TITLE */
+.info-card h3 {
+  margin: 0 0 8px;
+  color: #2e7d32;
+  font-size: 18px;
+}
+
+/* CARD TEXT */
+.info-card p {
+  margin: 0;
+  color: #2e3d33;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .dashboard-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-container {
+    padding: 28px;
+  }
+
+  .dashboard-title {
+    font-size: 28px;
+  }
+
+  .dashboard-text {
+    font-size: 15px;
+  }
+}
