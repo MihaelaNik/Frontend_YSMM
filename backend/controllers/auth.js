@@ -39,7 +39,7 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "Email or phone number already registered" });
     }
 
-    //Insert into USERS table
+    //Insert into users table
     const [userResults] = await dbConnection.query(
       "INSERT INTO users (username, first_name, last_name, email, phone, password) VALUES (?, ?, ?, ?, ?, ?)",
       [username, first_name, last_name, email, phone, hashedPassword]
